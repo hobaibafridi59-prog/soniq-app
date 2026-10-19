@@ -5,13 +5,13 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
 app.use(express.static(__dirname));
 
+// Memory Database (Live hosting ke liye)
 const rooms = {}; 
 
 io.on('connection', (socket) => {
-    
-    // Naya Room
     socket.on('create room', (data) => {
         rooms[data.roomId] = { playlist: [], adminName: data.user }; 
         socket.join(data.roomId);
@@ -20,7 +20,6 @@ io.on('connection', (socket) => {
         socket.emit('room joined', { success: true, isAdmin: true });
     });
 
-    // Purana Room Join (Strict Check)
     socket.on('join room', (data) => {
         if (rooms[data.roomId]) {
             socket.join(data.roomId);
@@ -31,7 +30,6 @@ io.on('connection', (socket) => {
             socket.emit('playlist update', rooms[data.roomId].playlist);
             socket.to(data.roomId).emit('chat message', { type: 'system', text: `${data.user} joined the room.` });
         } else {
-            // Yahan error bhej rahe hain
             socket.emit('join error', "Room ID galat hai ya exist nahi karta. Naya room banayein.");
         }
     });
@@ -49,5 +47,6 @@ io.on('connection', (socket) => {
     socket.on('reaction', (data) => { socket.to(data.roomId).emit('reaction', data.emoji); });
 });
 
+// PORT for Live Hosting
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => { console.log(`Soniq Live Server chal raha hai port ${PORT} par`); });
