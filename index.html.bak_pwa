@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soniq - Luxury Music Sync</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <!-- Lobby Screen -->
+    <div id="lobbyScreen" class="welcome-screen">
+        <div class="app-container welcome-box">
+            <h1 class="logo" style="text-align:center; margin-bottom: 20px;">Soniq<span>.</span></h1>
+            <p style="text-align:center; color:#888; margin-bottom: 20px; font-size: 14px;">Create or Join a Luxury Room</p>
+            
+            <input type="text" id="usernameInput" placeholder="Your Name (e.g. Lion)" maxlength="15" class="input-dark">
+            
+            <div class="lobby-actions">
+                <button id="createBtn" class="btn-primary">Create New Room</button>
+            </div>
+
+            <div class="lobby-divider">
+                <span>OR</span>
+            </div>
+
+            <div class="lobby-join">
+                <input type="number" id="roomIdInput" placeholder="Enter Old Room ID" class="input-dark">
+                <button id="joinBtn" class="btn-secondary">Join Room</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app-container" id="mainApp" style="display: none; position: relative; overflow: hidden;">
+        <div id="emojiContainer"></div>
+        <header class="header">
+            <h1 class="logo">Soniq<span>.</span></h1>
+            <div class="header-right">
+                <div class="room-info"><span class="live-dot"></span> <span id="displayRoomId">Room</span></div>
+                <button class="icon-btn" id="themeToggleBtn">🌙</button>
+                <button class="icon-btn" id="shareBtn">🔗</button>
+            </div>
+        </header>
+        <main class="player-card">
+            <div class="album-art" id="vinylArt"><div class="inner-art"><span class="music-icon">🎵</span></div></div>
+            <div class="song-details"><h2 id="songTitle">Choose a Song</h2><p id="songArtist">Search or Add URL</p></div>
+            <div class="reactions">
+                <button class="reaction-btn" onclick="sendEmoji('🔥')">🔥</button>
+                <button class="reaction-btn" onclick="sendEmoji('❤️')">❤️</button>
+                <button class="reaction-btn" onclick="sendEmoji('😂')">😂</button>
+                <button class="reaction-btn" onclick="sendEmoji('👏')">👏</button>
+            </div>
+            <div class="controls">
+                <button class="ctrl-btn secondary">⏮</button>
+                <button class="ctrl-btn primary" id="playBtn">▶</button>
+                <button class="ctrl-btn secondary">⏭</button>
+            </div>
+            <div class="progress-container">
+                <span class="time" id="currentTime">0:00</span>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                <span class="time" id="totalTime">0:00</span>
+            </div>
+            
+            <!-- Naya Search UI -->
+            <button id="togglePlaylistBtn" class="btn-secondary" style="margin-bottom: 10px; padding: 10px; font-size: 12px; display: none;">🔍 Search & Playlist</button>
+            
+            <div class="playlist-area" id="playlistArea" style="display: block;">
+                <!-- Admin Add URL Box -->
+                <div class="song-url-input" id="songUrlArea" style="display: none;">
+                    <input type="text" id="songUrlInput" placeholder="Paste direct MP3 URL..." class="input-dark">
+                    <button id="addSongBtn" class="btn-primary" style="padding: 10px;">Add</button>
+                </div>
+                
+                <!-- Naya: Search Box (Sirf Admin ke liye kaam karega abhi) -->
+                <div class="search-box" id="searchArea" style="display: none;">
+                    <input type="text" id="searchInput" placeholder="Search Song Name (Auto adds demo)" class="input-dark">
+                    <button id="searchBtn" class="btn-primary" style="padding: 10px;">🔍</button>
+                </div>
+
+                <div class="playlist-list" id="playlistList"></div>
+            </div>
+
+            <div class="chat-box">
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off">
+                    <button id="micBtn" style="margin-right: 5px; background: transparent; box-shadow: none; color: #ff7b00; font-size: 18px;">🎤</button>
+<button id="sendBtn">➤</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

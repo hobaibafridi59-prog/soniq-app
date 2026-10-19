@@ -1,0 +1,15 @@
+{
+  "name": "Soniq Luxury Music",
+  "short_name": "Soniq",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121215",
+  "theme_color": "#121215",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3771/3771413.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

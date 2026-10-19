@@ -214,3 +214,12 @@ body.light-theme .msg {
     margin-top: 8px;
     border-radius: 8px;
 }
+
+/* --- Lobby Tabs Styling --- */
+.lobby-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+.tab-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; background: transparent; color: #888; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.3s; }
+.tab-btn.active { background: #121215; color: #ff7b00; box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; }
+body.light-theme .tab-btn.active { background: #e0e5ec; box-shadow: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff; }
+.tab-content { display: none; animation: fadeIn 0.3s ease; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

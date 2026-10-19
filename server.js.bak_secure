@@ -1,0 +1,62 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static(__dirname));
+
+// Memory Database (Ab isme admin ka naam bhi save hoga)
+const rooms = {}; 
+
+io.on('connection', (socket) => {
+    // Naya Room Banane ka Logic
+    socket.on('create room', (data) => {
+        rooms[data.roomId] = { 
+            playlist: [], 
+            adminName: data.user // Yahan hum Admin ka naam save kar rahe hain
+        }; 
+        socket.join(data.roomId);
+        socket.roomId = data.roomId;
+        socket.isAdmin = true;
+        socket.emit('room joined', { success: true, isAdmin: true });
+    });
+
+    // Purane Room mein Join karne ka Logic
+    socket.on('join room', (data) => {
+        if (rooms[data.roomId]) {
+            socket.join(data.roomId);
+            socket.roomId = data.roomId;
+            
+            // CHECK: Kya yeh banda wahi Admin hai jo pehle tha?
+            const isUserAdmin = (rooms[data.roomId].adminName === data.user);
+            
+            socket.isAdmin = isUserAdmin;
+            socket.emit('room joined', { success: true, isAdmin: isUserAdmin });
+            socket.emit('playlist update', rooms[data.roomId].playlist);
+            socket.to(data.roomId).emit('chat message', { type: 'system', text: `${data.user} joined the room.` });
+        } else {
+            socket.emit('room joined', { success: false, message: "Room ID not found! Please check the ID or create a new room." });
+        }
+    });
+
+    socket.on('add to playlist', (data) => {
+        if(rooms[data.roomId]) {
+            rooms[data.roomId].playlist.push(data.song);
+            io.to(data.roomId).emit('playlist update', rooms[data.roomId].playlist); 
+        }
+    });
+
+    socket.on('play specific song', (data) => {
+        socket.to(data.roomId).emit('play specific song', data.song);
+    });
+
+    socket.on('chat message', (data) => { io.to(data.roomId).emit('chat message', data); });
+    socket.on('music sync', (data) => { socket.to(data.roomId).emit('music sync', data); });
+    socket.on('reaction', (data) => { socket.to(data.roomId).emit('reaction', data.emoji); });
+});
+
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, () => { console.log(`Soniq Live Server chal raha hai port ${PORT} par`); });

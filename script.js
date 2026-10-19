@@ -3,16 +3,19 @@ let myUsername = "";
 let currentRoomId = "";
 let isAdmin = false;
 let playlist = [];
-let mediaRecorder;
-let audioChunks = [];
-let isRecording = false;
 
-// --- Theme Toggle Logic ---
-const themeToggleBtn = document.getElementById('themeToggleBtn');
-themeToggleBtn.addEventListener('click', () => {
-    document.body.classList.toggle('light-theme');
-    themeToggleBtn.innerText = document.body.classList.contains('light-theme') ? '☀️' : '🌙';
-});
+// --- Tab Switching ---
+function switchTab(tabName) {
+    document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+    if(tabName === "create") {
+        document.getElementById("createSection").classList.add("active");
+        document.querySelectorAll(".tab-btn")[0].classList.add("active");
+    } else {
+        document.getElementById("joinSection").classList.add("active");
+        document.querySelectorAll(".tab-btn")[1].classList.add("active");
+    }
+}
 
 // --- Lobby Logic ---
 const lobbyScreen = document.getElementById('lobbyScreen');
@@ -24,39 +27,50 @@ const joinBtn = document.getElementById('joinBtn');
 const displayRoomId = document.getElementById('displayRoomId');
 const shareBtn = document.getElementById('shareBtn');
 
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('room')) { roomIdInput.value = urlParams.get('room'); }
-
-function enterApp(roomId, username, adminStatus) {
-    myUsername = username; currentRoomId = roomId; isAdmin = adminStatus;
-    lobbyScreen.style.display = 'none'; mainApp.style.display = 'block';
-    displayRoomId.innerText = "Room " + roomId;
-
-    if (isAdmin) {
-        document.getElementById('songUrlArea').style.display = 'flex';
-        document.getElementById('searchArea').style.display = 'flex';
-        document.getElementById('playlistArea').classList.add('open');
-        document.getElementById('songArtist').innerText = "Admin Mode 👑";
-    }
-    socket.emit('join room', { roomId: roomId, user: myUsername, isAdmin: isAdmin });
-}
-
 createBtn.addEventListener('click', () => {
     const name = usernameInput.value.trim();
     if (name === "") return alert("Please enter your name first!");
-    enterApp(Math.floor(100000 + Math.random() * 900000), name, true);
+    const newRoomId = Math.floor(100000 + Math.random() * 900000);
+    myUsername = name; currentRoomId = newRoomId;
+    socket.emit('create room', { roomId: newRoomId, user: myUsername });
 });
 
 joinBtn.addEventListener('click', () => {
-    const name = usernameInput.value.trim(); const roomId = roomIdInput.value.trim();
+    const name = usernameInput.value.trim(); 
+    const roomId = roomIdInput.value.trim();
     if (name === "") return alert("Please enter your name first!");
     if (roomId === "") return alert("Please enter a Room ID to join!");
-    enterApp(roomId, name, false);
+    myUsername = name; currentRoomId = roomId; 
+    socket.emit('join room', { roomId: roomId, user: myUsername });
 });
+
+socket.on('room joined', (response) => {
+    if (response.success) {
+        isAdmin = response.isAdmin;
+        lobbyScreen.style.display = 'none'; 
+        mainApp.style.display = 'block';
+        displayRoomId.innerText = "Room " + currentRoomId;
+        if (isAdmin) {
+            document.getElementById('songUrlArea').style.display = 'flex';
+            document.getElementById('searchArea').style.display = 'flex';
+            document.getElementById('playlistArea').classList.add('open');
+            document.getElementById('songArtist').innerText = "Admin Mode 👑";
+        }
+    }
+});
+
+socket.on('join error', (msg) => { alert(msg); });
 
 shareBtn.addEventListener('click', () => {
     const inviteLink = window.location.origin + window.location.pathname + "?room=" + currentRoomId;
     navigator.clipboard.writeText(inviteLink).then(() => alert("Invite Link Copied!"));
+});
+
+// --- Theme Toggle ---
+const themeToggleBtn = document.getElementById('themeToggleBtn');
+themeToggleBtn.addEventListener('click', () => {
+    document.body.classList.toggle('light-theme');
+    themeToggleBtn.innerText = document.body.classList.contains('light-theme') ? '☀️' : '🌙';
 });
 
 // --- Playlist & Search Logic ---
@@ -71,25 +85,29 @@ togglePlaylistBtn.addEventListener('click', () => {
 
 document.getElementById('addSongBtn').addEventListener('click', () => {
     const url = document.getElementById('songUrlInput').value.trim();
-    if(url) {
-        socket.emit('add to playlist', { roomId: currentRoomId, song: { title: "URL Song", url: url } });
-        document.getElementById('songUrlInput').value = "";
-    }
+    if(url) { socket.emit('add to playlist', { roomId: currentRoomId, song: { title: "URL Song", url: url } }); document.getElementById('songUrlInput').value = ""; }
 });
 
-document.getElementById('searchBtn').addEventListener('click', () => {
+document.getElementById('searchBtn').addEventListener('click', async () => {
     const query = document.getElementById('searchInput').value.trim();
-    if(query) {
-        const dummyUrl = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-' + (Math.floor(Math.random() * 8) + 1) + '.mp3';
-        socket.emit('add to playlist', { roomId: currentRoomId, song: { title: query, url: dummyUrl } });
-        document.getElementById('searchInput').value = "";
-    }
+    if(!query) return;
+    const searchBtn = document.getElementById('searchBtn'); searchBtn.innerText = "⏳"; 
+    try {
+        const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=1&media=music`);
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+            const song = data.results[0];
+            const songTitle = song.trackName + " - " + song.artistName;
+            const audioUrl = song.previewUrl; 
+            if (audioUrl) {
+                socket.emit('add to playlist', { roomId: currentRoomId, song: { title: songTitle, url: audioUrl } });
+                document.getElementById('searchInput').value = "";
+            } else { alert("Is gaane ka audio link nahi mila."); }
+        } else { alert("Gaana nahi mila."); }
+    } catch (error) { alert("Search fail ho gaya. Internet check karein."); } finally { searchBtn.innerText = "🔍"; }
 });
 
-socket.on('playlist update', (newPlaylist) => {
-    playlist = newPlaylist;
-    renderPlaylist();
-});
+socket.on('playlist update', (newPlaylist) => { playlist = newPlaylist; renderPlaylist(); });
 
 function renderPlaylist() {
     playlistList.innerHTML = '';
@@ -101,49 +119,62 @@ function renderPlaylist() {
             if(isAdmin) {
                 socket.emit('play specific song', { roomId: currentRoomId, song: song }); 
                 songDiv.classList.add('active');
-            } else {
-                alert("Sirf Admin gaana play kar sakta hai!");
-            }
+            } else { alert("Sirf Admin gaana play kar sakta hai!"); }
         };
         playlistList.appendChild(songDiv);
     });
 }
 
-// --- Audio Player Logic ---
-const playBtn = document.getElementById('playBtn');
-const progressFill = document.getElementById('progressFill');
-const currentTimeText = document.getElementById('currentTime');
-const totalTimeText = document.getElementById('totalTime');
-const songTitle = document.getElementById('songTitle');
+// --- Audio Player Logic (FIXED) ---
+const playBtn = document.getElementById('playBtn'); 
+const progressFill = document.getElementById('progressFill'); 
+const currentTimeText = document.getElementById('currentTime'); 
+const totalTimeText = document.getElementById('totalTime'); 
+const songTitle = document.getElementById('songTitle'); 
 const vinylArt = document.getElementById('vinylArt');
-let isPlaying = false;
-let audio = new Audio();
+let isPlaying = false; 
+
+// Naya HTML5 Audio Element use kar rahe hain
+const audio = document.getElementById('globalAudio');
 
 function formatTime(sec) { if (isNaN(sec)) return "0:00"; let m = Math.floor(sec / 60); let s = Math.floor(sec % 60); if(s < 10) s = '0' + s; return m + ':' + s; }
 audio.addEventListener('loadedmetadata', () => { totalTimeText.innerText = formatTime(audio.duration); });
 
 playBtn.addEventListener('click', () => {
     if (!isAdmin) return alert("Sirf Admin 👑 hi music control kar sakta hai!");
-    if (!audio.src) return alert("Pehle playlist se gaana select karein!");
-    
+    if (!audio.src) return alert("Pehle gaana select karein!");
     if (isPlaying) {
         audio.pause(); playBtn.innerHTML = '▶'; vinylArt.classList.remove('playing');
         socket.emit('music sync', { roomId: currentRoomId, action: 'pause', time: audio.currentTime });
     } else {
-        audio.play(); playBtn.innerHTML = '⏸'; vinylArt.classList.add('playing');
-        socket.emit('music sync', { roomId: currentRoomId, action: 'play', time: audio.currentTime });
+        audio.play().then(() => {
+            playBtn.innerHTML = '⏸'; vinylArt.classList.add('playing');
+            socket.emit('music sync', { roomId: currentRoomId, action: 'play', time: audio.currentTime });
+        }).catch(e => alert("Play nahi ho raha. Gaana dobara select karein."));
     }
     isPlaying = !isPlaying;
 });
 
 socket.on('play specific song', (song) => {
-    audio.src = song.url; audio.load(); songTitle.innerText = song.title;
-    playBtn.innerHTML = '▶'; isPlaying = false; progressFill.style.width = '0%'; currentTimeText.innerText = '0:00'; vinylArt.classList.remove('playing');
+    audio.src = song.url; 
+    audio.load(); 
+    songTitle.innerText = song.title;
+    playBtn.innerHTML = '▶'; 
+    isPlaying = false; 
+    progressFill.style.width = '0%'; 
+    currentTimeText.innerText = '0:00'; 
+    vinylArt.classList.remove('playing');
+    
     setTimeout(() => {
         audio.play().then(() => {
-            playBtn.innerHTML = '⏸'; isPlaying = true; vinylArt.classList.add('playing'); 
+            playBtn.innerHTML = '⏸'; 
+            isPlaying = true; 
+            vinylArt.classList.add('playing'); 
             socket.emit('music sync', { roomId: currentRoomId, action: 'play', time: 0 });
-        }).catch(e => console.log("Play error:", e));
+        }).catch(e => {
+            console.log("Autoplay blocked. User needs to click.");
+            playBtn.innerHTML = '▶';
+        });
     }, 500);
 });
 
@@ -152,10 +183,7 @@ socket.on('music sync', (data) => {
     else if (data.action === 'pause') { audio.pause(); playBtn.innerHTML = '▶'; isPlaying = false; vinylArt.classList.remove('playing'); }
 });
 
-audio.addEventListener('timeupdate', () => {
-    currentTimeText.innerText = formatTime(audio.currentTime);
-    if (audio.duration) { progressFill.style.width = ((audio.currentTime / audio.duration) * 100) + '%'; }
-});
+audio.addEventListener('timeupdate', () => { currentTimeText.innerText = formatTime(audio.currentTime); if (audio.duration) { progressFill.style.width = ((audio.currentTime / audio.duration) * 100) + '%'; } });
 
 // --- Chat & Emoji Logic ---
 const chatInput = document.getElementById('chatInput'); const sendBtn = document.getElementById('sendBtn'); const chatMessages = document.getElementById('chatMessages');
@@ -163,10 +191,7 @@ function sendMessage() { const text = chatInput.value.trim(); if (text !== "") {
 socket.on('chat message', (msg) => { 
     const msgDiv = document.createElement('div'); 
     if (msg.type === 'system') { msgDiv.className = 'msg system'; msgDiv.innerHTML = `<strong>System</strong><br>${msg.text}`; } 
-    else if (msg.type === 'voice') { 
-        msgDiv.className = 'msg friend voice-msg'; 
-        msgDiv.innerHTML = `<strong>${msg.user} (Voice Note)</strong><audio controls src="${msg.audioData}"></audio>`; 
-    } 
+    else if (msg.type === 'voice') { msgDiv.className = 'msg friend voice-msg'; msgDiv.innerHTML = `<strong>${msg.user} (Voice Note)</strong><audio controls src="${msg.audioData}"></audio>`; } 
     else { msgDiv.className = 'msg friend'; msgDiv.innerHTML = `<strong>${msg.user}</strong><br>${msg.text}`; } 
     chatMessages.appendChild(msgDiv); chatMessages.scrollTop = chatMessages.scrollHeight; 
 });
@@ -179,47 +204,7 @@ function createFloatingEmoji(emoji) { const emojiEl = document.createElement('di
 
 // --- Voice Recording Logic ---
 const micBtn = document.getElementById('micBtn');
-
-micBtn.addEventListener('mousedown', startRecording);
-micBtn.addEventListener('touchstart', startRecording, {passive: true});
-
-micBtn.addEventListener('mouseup', stopRecording);
-micBtn.addEventListener('touchend', stopRecording);
-
-async function startRecording(e) {
-    if(e) e.preventDefault();
-    if(isRecording) return;
-    
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        
-        mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); };
-        
-        mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            const reader = new FileReader();
-            reader.readAsDataURL(audioBlob);
-            reader.onloadend = () => {
-                const base64Audio = reader.result;
-                socket.emit('chat message', { roomId: currentRoomId, user: myUsername, type: 'voice', audioData: base64Audio });
-            };
-        };
-        
-        mediaRecorder.start();
-        isRecording = true;
-        micBtn.classList.add('recording');
-    } catch (err) {
-        alert("Microphone permission denied or not available.");
-    }
-}
-
-function stopRecording(e) {
-    if(e) e.preventDefault();
-    if(!isRecording || !mediaRecorder) return;
-    
-    mediaRecorder.stop();
-    isRecording = false;
-    micBtn.classList.remove('recording');
-}
+micBtn.addEventListener('mousedown', startRecording); micBtn.addEventListener('touchstart', startRecording, {passive: true});
+micBtn.addEventListener('mouseup', stopRecording); micBtn.addEventListener('touchend', stopRecording);
+async function startRecording(e) { if(e) e.preventDefault(); if(isRecording) return; try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaRecorder = new MediaRecorder(stream); audioChunks = []; mediaRecorder.ondataavailable = event => { audioChunks.push(event.data); }; mediaRecorder.onstop = () => { const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); const reader = new FileReader(); reader.readAsDataURL(audioBlob); reader.onloadend = () => { const base64Audio = reader.result; socket.emit('chat message', { roomId: currentRoomId, user: myUsername, type: 'voice', audioData: base64Audio }); }; }; mediaRecorder.start(); isRecording = true; micBtn.classList.add('recording'); } catch (err) { alert("Microphone permission denied."); } }
+function stopRecording(e) { if(e) e.preventDefault(); if(!isRecording || !mediaRecorder) return; mediaRecorder.stop(); isRecording = false; micBtn.classList.remove('recording'); }
