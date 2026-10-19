@@ -1,0 +1,67 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require("socket.io");
+const Database = require('better-sqlite3');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.use(express.static(__dirname));
+
+// Database setup (Yeh ek file banayega 'soniq.db')
+const db = new Database('soniq.db');
+
+// Tables banana
+db.exec(`
+    CREATE TABLE IF NOT EXISTS rooms (
+        roomId TEXT PRIMARY KEY
+    );
+    CREATE TABLE IF NOT EXISTS playlists (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        roomId TEXT,
+        title TEXT,
+        url TEXT,
+        FOREIGN KEY(roomId) REFERENCES rooms(roomId)
+    );
+`);
+
+io.on('connection', (socket) => {
+    socket.on('join room', (data) => {
+        socket.join(data.roomId);
+        socket.roomId = data.roomId;
+
+        // Check karo room database mein hai ya nahi
+        const roomExists = db.prepare('SELECT * FROM rooms WHERE roomId = ?').get(data.roomId);
+        
+        // Agar room nahi hai, toh naya banao
+        if (!roomExists) {
+            db.prepare('INSERT INTO rooms (roomId) VALUES (?)').run(data.roomId);
+        }
+
+        // Playlist database se nikaalo aur user ko bhejo
+        const playlist = db.prepare('SELECT * FROM playlists WHERE roomId = ?').all(data.roomId);
+        socket.emit('playlist update', playlist);
+        
+        socket.to(data.roomId).emit('chat message', { type: 'system', text: `${data.user} joined the room.` });
+    });
+
+    socket.on('add to playlist', (data) => {
+        // Database mein gaana save karo
+        db.prepare('INSERT INTO playlists (roomId, title, url) VALUES (?, ?, ?)').run(data.roomId, data.song.title, data.song.url);
+        
+        // Sabko nayi list bhejo
+        const playlist = db.prepare('SELECT * FROM playlists WHERE roomId = ?').all(data.roomId);
+        io.to(data.roomId).emit('playlist update', playlist); 
+    });
+
+    socket.on('play specific song', (data) => {
+        socket.to(data.roomId).emit('play specific song', data.song);
+    });
+
+    socket.on('chat message', (data) => { io.to(data.roomId).emit('chat message', data); });
+    socket.on('music sync', (data) => { socket.to(data.roomId).emit('music sync', data); });
+    socket.on('reaction', (data) => { socket.to(data.roomId).emit('reaction', data.emoji); });
+});
+
+server.listen(8080, () => { console.log('Soniq (Database Edition) chal raha hai: http://localhost:8080'); });

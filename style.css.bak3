@@ -1,0 +1,168 @@
+/* --- Global Settings --- */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+body { background-color: #121215; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+/* --- Common Buttons & Inputs --- */
+.input-dark { width: 100%; padding: 15px; border: none; border-radius: 15px; background: #121215; color: #fff; box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; outline: none; text-align: center; font-size: 14px; }
+.btn-primary { padding: 15px; border: none; border-radius: 15px; background: #ff7b00; color: #fff; font-weight: bold; cursor: pointer; box-shadow: 5px 5px 10px #09090a; transition: 0.2s; }
+.btn-primary:active { transform: scale(0.95); }
+.btn-secondary { width: 100%; padding: 15px; border: none; border-radius: 15px; background: #1b1b20; color: #ff7b00; font-weight: bold; cursor: pointer; box-shadow: 3px 3px 6px #09090a, -3px -3px 6px #1b1b20; transition: 0.2s; }
+
+/* --- Welcome Screen --- */
+.welcome-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #121215; display: flex; justify-content: center; align-items: center; z-index: 100; }
+.welcome-box { width: 90%; max-width: 350px; }
+
+/* --- App Container --- */
+.app-container { width: 100%; max-width: 400px; padding: 30px; border-radius: 40px; background: #121215; box-shadow: 10px 10px 20px #09090a, -10px -10px 20px #1b1b20; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.logo { font-size: 24px; font-weight: 600; letter-spacing: 1px; }
+.logo span { color: #ff7b00; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.room-info { font-size: 12px; background: #1b1b20; padding: 8px 15px; border-radius: 20px; box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; display: flex; align-items: center; gap: 8px; color: #888; }
+.live-dot { width: 8px; height: 8px; background-color: #00ff88; border-radius: 50%; box-shadow: 0 0 10px #00ff88; }
+.share-btn { background: #121215; border: none; color: #ff7b00; font-size: 16px; cursor: pointer; width: 35px; height: 35px; border-radius: 50%; box-shadow: 3px 3px 6px #09090a, -3px -3px 6px #1b1b20; display: flex; justify-content: center; align-items: center; }
+.share-btn:active { box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; }
+#roomIdInput::-webkit-outer-spin-button, #roomIdInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.player-card { display: flex; flex-direction: column; align-items: center; }
+.album-art { width: 180px; height: 180px; border-radius: 50%; background: #121215; padding: 10px; box-shadow: 8px 8px 16px #09090a, -8px -8px 16px #1b1b20; margin-bottom: 20px; }
+.inner-art { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #2a2a35, #121215); display: flex; justify-content: center; align-items: center; box-shadow: inset 8px 8px 16px #09090a, inset -8px -8px 16px #1b1b20; }
+.music-icon { font-size: 45px; opacity: 0.5; filter: drop-shadow(0 0 10px #ff7b00); }
+
+.song-details { text-align: center; margin-bottom: 15px; }
+.song-details h2 { font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 5px; }
+.song-details p { font-size: 13px; color: #888; }
+
+.reactions { display: flex; gap: 10px; margin-bottom: 20px; }
+.reaction-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: #121215; font-size: 18px; cursor: pointer; box-shadow: 3px 3px 6px #09090a, -3px -3px 6px #1b1b20; transition: 0.2s; }
+.reaction-btn:active { box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; transform: scale(0.9); }
+
+#emojiContainer { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; z-index: 10; }
+.floating-emoji { position: absolute; bottom: 20px; font-size: 30px; animation: floatUp 2s ease-out forwards; opacity: 0; }
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(0.5); opacity: 1; }
+    50% { transform: translateY(-200px) scale(1.5) rotate(15deg); opacity: 1; }
+    100% { transform: translateY(-400px) scale(1); opacity: 0; }
+}
+
+.controls { display: flex; align-items: center; gap: 25px; margin-bottom: 25px; }
+.ctrl-btn { border: none; background: #121215; color: #e0e0e0; cursor: pointer; display: flex; justify-content: center; align-items: center; border-radius: 50%; transition: 0.2s ease; box-shadow: 5px 5px 10px #09090a, -5px -5px 10px #1b1b20; }
+.primary { width: 65px; height: 65px; font-size: 22px; color: #ff7b00; box-shadow: inset 5px 5px 10px #09090a, inset -5px -5px 10px #1b1b20; }
+.primary:active { box-shadow: inset 2px 2px 5px #09090a, inset -2px -2px 5px #1b1b20; transform: scale(0.95); }
+.secondary { width: 45px; height: 45px; font-size: 15px; color: #888; }
+.secondary:active { box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; color: #ff7b00; }
+
+.progress-container { width: 100%; display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+.time { font-size: 11px; color: #666; font-weight: 600; }
+.progress-bar { flex: 1; height: 6px; background: #121215; border-radius: 10px; box-shadow: inset 2px 2px 4px #09090a, inset -2px -2px 4px #1b1b20; position: relative; overflow: hidden; }
+.progress-fill { width: 0%; height: 100%; background: #ff7b00; border-radius: 10px; box-shadow: 0 0 10px rgba(255, 123, 0, 0.4); }
+
+.song-url-input { width: 100%; display: flex; gap: 10px; margin-bottom: 20px; }
+.song-url-input input { flex: 1; text-align: left; padding: 10px; }
+
+.chat-box { width: 100%; background: #121215; border-radius: 20px; padding: 15px; box-shadow: inset 5px 5px 10px #09090a, inset -5px -5px 10px #1b1b20; }
+.chat-messages { height: 100px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #ff7b00; border-radius: 10px; }
+.msg { font-size: 11px; padding: 8px 12px; border-radius: 10px; max-width: 85%; line-height: 1.4; }
+.msg.system { color: #888; font-style: italic; align-self: center; background: transparent; padding: 0; margin-bottom: 5px;}
+.msg.user { background: #1b1b20; color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 3px 3px 6px #09090a; }
+.msg.friend { background: #1b1b20; color: #ff7b00; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: -3px -3px 6px #1b1b20; }
+.msg strong { display: block; font-size: 9px; color: #aaa; margin-bottom: 2px; }
+.chat-input-area { display: flex; gap: 10px; }
+.chat-input-area input { flex: 1; background: #121215; border: none; padding: 10px 15px; border-radius: 15px; color: #fff; font-size: 12px; outline: none; box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; }
+.chat-input-area button { width: 40px; height: 40px; border: none; border-radius: 50%; background: #121215; color: #ff7b00; font-size: 16px; cursor: pointer; box-shadow: 3px 3px 6px #09090a, -3px -3px 6px #1b1b20; display: flex; justify-content: center; align-items: center; }
+.chat-input-area button:active { box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; }
+
+/* Fix for Lobby Inputs */
+.welcome-box input[type="text"], 
+.welcome-box input[type="number"] {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 15px;
+    background: #121215 !important;
+    color: #fff !important;
+    box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20;
+    outline: none;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Flex fix for Create Room & Room ID */
+.welcome-box .lobby-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.welcome-box .lobby-row input {
+    margin-bottom: 0 !important;
+}
+.welcome-box .lobby-row button {
+    flex: 1;
+}
+
+/* --- Playlist Styling --- */
+.playlist-area { width: 100%; background: #121215; border-radius: 15px; padding: 10px; margin-bottom: 15px; box-shadow: inset 4px 4px 8px #09090a, inset -4px -4px 8px #1b1b20; }
+.playlist-list { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+.playlist-list::-webkit-scrollbar { width: 4px; }
+.playlist-list::-webkit-scrollbar-thumb { background: #ff7b00; border-radius: 10px; }
+.song-item { padding: 10px; border-radius: 10px; font-size: 12px; color: #aaa; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
+.song-item:hover { background: #1b1b20; color: #fff; }
+.song-item.active { color: #ff7b00; font-weight: bold; background: #1b1b20; }
+.song-item span { font-size: 10px; color: #555; }
+
+/* Fix Lobby inputs if they break again */
+.welcome-box input[type="text"], .welcome-box input[type="number"] {
+    width: 100%; padding: 15px; margin-bottom: 15px; border: none; border-radius: 15px; background: #121215 !important; color: #fff !important;
+    box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; outline: none; font-size: 14px; text-align: center;
+}
+.welcome-box .lobby-row { display: flex; gap: 10px; margin-bottom: 15px; }
+.welcome-box .lobby-row input { margin-bottom: 0 !important; }
+.welcome-box .lobby-row button { flex: 1; }
+
+/* --- Theme Variables (Light/Dark) --- */
+body.light-theme {
+    background-color: #e0e5ec; color: #333;
+}
+body.light-theme .app-container, 
+body.light-theme .welcome-box, 
+body.light-theme .chat-box, 
+body.light-theme .playlist-area { 
+    background: #e0e5ec; box-shadow: 9px 9px 16px #a3b1c6, -9px -9px 16px #ffffff; 
+}
+body.light-theme .input-dark, body.light-theme .welcome-box input { background: #e0e5ec !important; color: #333 !important; box-shadow: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff; }
+body.light-theme .logo, body.light-theme .song-details h2 { color: #333; }
+body.light-theme .song-details p, body.light-theme .room-info { color: #666; }
+body.light-theme .icon-btn, body.light-theme .reaction-btn, body.light-theme .ctrl-btn, body.light-theme .chat-input-area input { background: #e0e5ec; color: #333; box-shadow: 3px 3px 6px #a3b1c6, -3px -3px 6px #ffffff; }
+body.light-theme .primary { box-shadow: inset 3px 3px 6px #a3b1c6, inset -3px -3px 6px #ffffff; }
+body.light-theme .btn-secondary { background: #e0e5ec; box-shadow: 3px 3px 6px #a3b1c6, -3px -3px 6px #ffffff; }
+body.light-theme .msg.user, body.light-theme .msg.friend { background: #e0e5ec; box-shadow: 3px 3px 6px #a3b1c6; color: #333; }
+body.light-theme .progress-bar { box-shadow: inset 2px 2px 4px #a3b1c6, inset -2px -2px 4px #ffffff; }
+body.light-theme .song-item:hover, body.light-theme .song-item.active { background: #e0e5ec; box-shadow: inset 2px 2px 4px #a3b1c6; }
+
+/* Icon Buttons (Theme & Share) */
+.icon-btn { background: #121215; border: none; color: #ff7b00; font-size: 16px; cursor: pointer; width: 35px; height: 35px; border-radius: 50%; box-shadow: 3px 3px 6px #09090a, -3px -3px 6px #1b1b20; display: flex; justify-content: center; align-items: center; }
+.icon-btn:active { box-shadow: inset 3px 3px 6px #09090a, inset -3px -3px 6px #1b1b20; }
+
+/* Smooth Playlist Slide Down */
+.playlist-area { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out, padding 0.4s ease; padding: 0 10px; }
+.playlist-area.open { max-height: 200px; padding: 10px; }
+
+/* Vinyl Record Spin Animation */
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.album-art.playing .inner-art { animation: spin 4s linear infinite; border-radius: 50%; }
+.album-art.playing .music-icon { animation: spin 4s linear infinite reverse; /* Icon ko seedha rakhne ke liye */ }
+
+/* --- Naya Lobby Layout Fix --- */
+.lobby-actions { margin-bottom: 15px; }
+.lobby-actions button { width: 100%; padding: 15px; }
+.lobby-divider { text-align: center; margin: 15px 0; position: relative; }
+.lobby-divider::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #333; z-index: 1; }
+.lobby-divider span { background: #121215; padding: 0 10px; color: #666; font-size: 12px; position: relative; z-index: 2; }
+body.light-theme .lobby-divider span { background: #e0e5ec; color: #999; }
+body.light-theme .lobby-divider::before { background: #ccc; }
+.lobby-join { display: flex; flex-direction: column; gap: 10px; }
+.lobby-join input { margin-bottom: 0 !important; }
+.lobby-join button { width: 100%; padding: 15px; }
